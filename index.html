@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#050506"><meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
+<title>Aura RNG</title>
+<style>
+@font-face{font-family:BO;src:url(fonts/black-ops-one.woff2) format("woff2");font-display:swap}
+@font-face{font-family:RJ;font-weight:600;src:url(fonts/rajdhani.woff2) format("woff2");font-display:swap}
+:root{--bg:#050506;--ash:#8c8c92;--ember:#ff2a1a;--fg:#ecebea;--pad:16px}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:600 18px RJ,"Arial Narrow",Arial,sans-serif;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(ellipse at 50% 130%,#2a0a07 0,var(--bg) 62%)}
+button{font:inherit;color:var(--fg);background:none;border:1px solid #3a3a40;border-radius:6px;padding:9px 16px;cursor:pointer}
+button:active{background:#1a1a1d}
+#aura{position:fixed;inset:0;z-index:1;display:none;background:#030304}
+#aura canvas{display:block}
+#fl{z-index:2;position:fixed;inset:0;background:#ffd8cc;opacity:0;pointer-events:none}
+#ti{z-index:3;position:fixed;left:0;right:0;bottom:14%;text-align:center;opacity:0;transform:scale(1.15);transition:opacity 1.4s,transform 2.4s;pointer-events:none}
+#ti.on{opacity:1;transform:scale(1)}
+#ti h1{font:400 clamp(2rem,9vw,5.5rem) BO,Impact,sans-serif;letter-spacing:.2em;padding-left:.2em;margin:0;text-shadow:0 0 12px #ff2a1a,0 0 40px #ff1400,0 0 90px #a00}
+#ti p{font:600 clamp(.9rem,3vw,1.4rem) RJ,Arial,sans-serif;letter-spacing:.25em;margin:.5em 0 0;color:#ff7a66;text-shadow:0 0 14px #f20}
+#hud{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;padding:calc(var(--pad) + env(safe-area-inset-top,0px)) calc(var(--pad) + env(safe-area-inset-right,0px)) calc(var(--pad) + env(safe-area-inset-bottom,0px)) calc(var(--pad) + env(safe-area-inset-left,0px))}
+#top{display:flex;justify-content:space-between;align-items:center;color:var(--ash)}
+#top div{display:flex;gap:10px}
+#main{flex:1;display:flex;align-items:center;justify-content:space-around;gap:20px}
+#res{text-align:center;min-width:0}
+#rn{font:400 clamp(2rem,8vw,4.6rem) BO,Impact,sans-serif;letter-spacing:.06em;color:var(--ash)}
+#rn.pop{animation:pop .5s cubic-bezier(.2,1.3,.4,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0;filter:blur(8px)}to{transform:none;opacity:1;filter:none}}
+#ro{margin-top:6px;color:var(--ash);font-size:1.25rem;min-height:1.5em}
+#roll{width:min(38vh,34vw,170px);aspect-ratio:1;border-radius:50%;font:400 1.7rem BO,Impact,sans-serif;letter-spacing:.08em;border:2px solid #5a1a14;background:radial-gradient(circle,#2a0c09 0,#0b0708 70%);box-shadow:0 0 30px #ff2a1a22 inset,0 0 24px #ff2a1a33;transition:box-shadow .3s,transform .1s}
+#roll:active{transform:scale(.95)}
+#roll.on{box-shadow:0 0 50px #ff2a1a99 inset,0 0 60px #ff2a1a88;animation:sh .12s infinite}
+@keyframes sh{50%{transform:translate(2px,-2px) scale(.97)}}
+@media (orientation:portrait){#main{flex-direction:column-reverse}#roll{width:min(46vw,170px)}}
+.pn{position:fixed;inset:0;z-index:8;display:none;flex-direction:column;background:#050506f5;padding:calc(var(--pad) + env(safe-area-inset-top,0px)) calc(var(--pad) + env(safe-area-inset-right,0px)) calc(var(--pad) + env(safe-area-inset-bottom,0px)) calc(var(--pad) + env(safe-area-inset-left,0px))}
+.pn.on{display:flex}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:1.3rem}
+.pb{overflow:auto;flex:1}
+#ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.it{display:flex;flex-direction:column;gap:4px;text-align:left;padding:12px}
+.it b{font:400 1.2rem BO,Impact,sans-serif}.it i{font-style:normal;color:var(--ash);font-size:.9rem}.it u{text-decoration:none;color:var(--ash)}
+.row{margin-bottom:22px}.row p{margin:0 0 8px;color:var(--ash)}
+.seg{display:flex;gap:8px;flex-wrap:wrap}.seg button.sel{border-color:var(--ember);color:#fff;background:#2a0c09}
+#x{position:fixed;z-index:9;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));opacity:0;pointer-events:none;transition:opacity .5s;background:#000a}
+#x.on{opacity:.75;pointer-events:auto}
+</style></head><body>
+<div id="aura"></div><div id="fl"></div>
+<div id="ti"><h1>DEMOLITION</h1><p>1 in 675,000,000</p></div>
+<button id="x">Kapat</button>
+<div id="hud">
+ <div id="top"><span id="cnt">0 roll</span><div><button id="bi">Envanter</button><button id="bs">Ayarlar</button></div></div>
+ <div id="main"><div id="res"><div id="rn">Hazır</div><div id="ro">Roll'a bas</div></div><button id="roll">Roll</button></div>
+</div>
+<div class="pn" id="inv"><div class="ph"><span>Envanter</span><button data-c>Kapat</button></div><div class="pb"><div id="ig"></div></div></div>
+<div class="pn" id="set"><div class="ph"><span>Ayarlar</span><button data-c>Kapat</button></div><div class="pb">
+ <div class="row"><p>Grafik kalitesi (değişince sayfa yenilenir)</p><div class="seg" id="sq"></div></div>
+ <div class="row"><p>Test şansı (Demolition'u görmek için en yüksek değeri seç)</p><div class="seg" id="sl"></div></div>
+ <div class="row"><button id="rs">Kaydı sıfırla</button></div>
+</div></div>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/CopyShader.js"></script>
+<script src="vendor/LuminosityHighPassShader.js"></script>
+<script src="vendor/EffectComposer.js"></script>
+<script src="vendor/RenderPass.js"></script>
+<script src="vendor/ShaderPass.js"></script>
+<script src="vendor/UnrealBloomPass.js"></script>
+<script src="app.js"></script>
+<script src="aura-demolition.js"></script>
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+</body></html>
